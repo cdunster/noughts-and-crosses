@@ -25,8 +25,25 @@ fn draw_grid() {
         println!("{}|{}|{}", GRID[2][0], GRID[2][1], GRID[2][2]);
     }
 }
+
+fn take_turn(side: char) {
+    println!("Where would you like to place your {}?", side);
+    println!("Please enter as row [space] column.");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    let mut pos = input.split_ascii_whitespace();
+    let row = pos.next().unwrap().parse::<usize>().unwrap();
+    let col = pos.next().unwrap().parse::<usize>().unwrap();
+    unsafe {
+        GRID[row][col] = side;
+    }
+}
+
 fn main() {
     println!("Welcome to Noughts and Crosses!");
     let side = select_side();
-    draw_grid();
+    loop {
+        draw_grid();
+        take_turn(side);
+    }
 }
