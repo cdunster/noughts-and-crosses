@@ -1,3 +1,6 @@
+extern crate rand;
+
+use rand::Rng;
 use std::io;
 
 static mut GRID: [[char; 3]; 3] = [[' '; 3]; 3];
@@ -46,11 +49,30 @@ fn take_turn(side: char) {
     }
 }
 
+fn computer_turn(side: char) {
+    println!("Computer's turn.");
+    loop {
+        let row = rand::thread_rng().gen_range(0, 3);
+        let col = rand::thread_rng().gen_range(0, 3);
+        unsafe {
+            if GRID[row][col] == ' ' {
+                GRID[row][col] = side;
+                break;
+            }
+        }
+    }
+}
+
 fn main() {
     println!("Welcome to Noughts and Crosses!");
-    let side = select_side();
+    let user_side = select_side();
+    let mut computer_side = 'X';
+    if let 'X' = user_side {
+        computer_side = 'O';
+    }
     loop {
         draw_grid();
-        take_turn(side);
+        take_turn(user_side);
+        computer_turn(computer_side);
     }
 }
