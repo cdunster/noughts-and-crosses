@@ -63,6 +63,54 @@ fn computer_turn(side: char) {
     }
 }
 
+fn is_row_won(row: usize) -> Option<char> {
+    unsafe {
+        if GRID[row][0] == GRID[row][1] && GRID[row][1] == GRID[row][2] && GRID[row][0] != ' ' {
+            return Some(GRID[row][0]);
+        }
+    }
+
+    None
+}
+
+fn is_column_won(col: usize) -> Option<char> {
+    unsafe {
+        if GRID[0][col] == GRID[1][col] && GRID[1][col] == GRID[2][col] && GRID[0][col] != ' ' {
+            return Some(GRID[0][col]);
+        }
+    }
+    None
+}
+
+fn is_diagonals_won() -> Option<char> {
+    unsafe {
+        if GRID[0][0] == GRID[1][1] && GRID[1][1] == GRID[2][2] && GRID[0][0] != ' ' {
+            return Some(GRID[0][0]);
+        } else if GRID[0][2] == GRID[1][1] && GRID[1][1] == GRID[2][0] && GRID[0][2] != ' ' {
+            return Some(GRID[0][2]);
+        }
+    }
+    None
+}
+
+fn find_winner() -> Option<char> {
+    for i in 0..3 {
+        if let Some(winner) = is_row_won(i) {
+            return Some(winner);
+        }
+
+        if let Some(winner) = is_column_won(i) {
+            return Some(winner);
+        }
+
+        if let Some(winner) = is_diagonals_won() {
+            return Some(winner);
+        }
+    }
+
+    None
+}
+
 fn main() {
     println!("Welcome to Noughts and Crosses!");
     let user_side = select_side();
@@ -74,5 +122,14 @@ fn main() {
         draw_grid();
         take_turn(user_side);
         computer_turn(computer_side);
+        if let Some(winner) = find_winner() {
+            if winner == user_side {
+                println!("You won!");
+            } else {
+                println!("You lost!");
+            }
+            draw_grid();
+            break;
+        }
     }
 }
