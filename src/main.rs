@@ -3,8 +3,6 @@ extern crate rand;
 use rand::Rng;
 use std::io;
 
-static mut GRID: [[char; 3]; 3] = [[' '; 3]; 3];
-
 fn select_side() -> char {
     loop {
         println!("Would you like to be O's or X's?");
@@ -19,17 +17,15 @@ fn select_side() -> char {
     }
 }
 
-fn draw_grid() {
-    unsafe {
-        println!("{}|{}|{}", GRID[0][0], GRID[0][1], GRID[0][2]);
-        println!("_____");
-        println!("{}|{}|{}", GRID[1][0], GRID[1][1], GRID[1][2]);
-        println!("_____");
-        println!("{}|{}|{}", GRID[2][0], GRID[2][1], GRID[2][2]);
-    }
+fn draw_grid(grid: &[[char; 3]; 3]) {
+    println!("{}|{}|{}", grid[0][0], grid[0][1], grid[0][2]);
+    println!("_____");
+    println!("{}|{}|{}", grid[1][0], grid[1][1], grid[1][2]);
+    println!("_____");
+    println!("{}|{}|{}", grid[2][0], grid[2][1], grid[2][2]);
 }
 
-fn take_turn(side: char) {
+fn take_turn(side: char, grid: &mut [[char; 3]; 3]) {
     println!("Where would you like to place your {}?", side);
     loop {
         println!("Please enter as row [space] column.");
@@ -38,76 +34,64 @@ fn take_turn(side: char) {
         let mut pos = input.split_ascii_whitespace();
         let row = pos.next().unwrap().parse::<usize>().unwrap();
         let col = pos.next().unwrap().parse::<usize>().unwrap();
-        unsafe {
-            if GRID[row][col] == ' ' {
-                GRID[row][col] = side;
-                break;
-            } else {
-                println!("Position is not valid.");
-            }
+        if grid[row][col] == ' ' {
+            grid[row][col] = side;
+            break;
+        } else {
+            println!("Position is not valid.");
         }
     }
 }
 
-fn computer_turn(side: char) {
+fn computer_turn(side: char, grid: &mut [[char; 3]; 3]) {
     println!("Computer's turn.");
     loop {
         let row = rand::thread_rng().gen_range(0, 3);
         let col = rand::thread_rng().gen_range(0, 3);
-        unsafe {
-            if GRID[row][col] == ' ' {
-                GRID[row][col] = side;
-                break;
-            }
+        if grid[row][col] == ' ' {
+            grid[row][col] = side;
+            break;
         }
     }
 }
 
-fn is_row_won(row: usize) -> Option<char> {
-    unsafe {
-        if GRID[row][0] == GRID[row][1] && GRID[row][1] == GRID[row][2] && GRID[row][0] != ' ' {
-            return Some(GRID[row][0]);
-        }
-    }
-
-    None
-}
-
-fn is_column_won(col: usize) -> Option<char> {
-    unsafe {
-        if GRID[0][col] == GRID[1][col] && GRID[1][col] == GRID[2][col] && GRID[0][col] != ' ' {
-            return Some(GRID[0][col]);
-        }
+fn is_row_won(row: usize, grid: &[[char; 3]; 3]) -> Option<char> {
+    if grid[row][0] == grid[row][1] && grid[row][1] == grid[row][2] && grid[row][0] != ' ' {
+        return Some(grid[row][0]);
     }
     None
 }
 
-fn is_diagonals_won() -> Option<char> {
-    unsafe {
-        if GRID[0][0] == GRID[1][1] && GRID[1][1] == GRID[2][2] && GRID[0][0] != ' ' {
-            return Some(GRID[0][0]);
-        } else if GRID[0][2] == GRID[1][1] && GRID[1][1] == GRID[2][0] && GRID[0][2] != ' ' {
-            return Some(GRID[0][2]);
-        }
+fn is_column_won(col: usize, grid: &[[char; 3]; 3]) -> Option<char> {
+    if grid[0][col] == grid[1][col] && grid[1][col] == grid[2][col] && grid[0][col] != ' ' {
+        return Some(grid[0][col]);
     }
     None
 }
 
-fn find_winner() -> Option<char> {
+fn is_diagonals_won(grid: &[[char; 3]; 3]) -> Option<char> {
+    if grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] && grid[0][0] != ' ' {
+        return Some(grid[0][0]);
+    } else if grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0] && grid[0][2] != ' ' {
+        return Some(grid[0][2]);
+    }
+    None
+}
+
+fn find_winner(grid: &[[char; 3]; 3]) -> Option<char> {
     for i in 0..3 {
-        if let Some(winner) = is_row_won(i) {
+        if let Some(winner) = is_row_won(i, grid) {
             return Some(winner);
         }
 
-        if let Some(winner) = is_column_won(i) {
+        if let Some(winner) = is_column_won(i, grid) {
             return Some(winner);
         }
 
-        if let Some(winner) = is_diagonals_won() {
+        if let Some(winner) = is_diagonals_won(grid) {
             return Some(winner);
         }
     }
-
     None
 }
 
@@ -118,17 +102,18 @@ fn main() {
     if let 'X' = user_side {
         computer_side = 'O';
     }
+    let mut grid: [[char; 3]; 3] = [[' '; 3]; 3];
     loop {
-        draw_grid();
-        take_turn(user_side);
-        computer_turn(computer_side);
-        if let Some(winner) = find_winner() {
+        draw_grid(&grid);
+        take_turn(user_side, &mut grid);
+        computer_turn(computer_side, &mut grid);
+        if let Some(winner) = find_winner(&grid) {
             if winner == user_side {
                 println!("You won!");
             } else {
                 println!("You lost!");
             }
-            draw_grid();
+            draw_grid(&grid);
             break;
         }
     }
